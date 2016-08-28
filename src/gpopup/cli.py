@@ -15,13 +15,42 @@ Why does this file exist, and why not put this in __main__?
   Also see (1) from http://click.pocoo.org/5/setuptools/#setuptools-integration
 """
 import argparse
+from gpopup import (notifier, message_parsers)
+import fileinput
+import sys
 
+msg_parsers = message_parsers.choices
 
 parser = argparse.ArgumentParser(description='Command description.')
-parser.add_argument('names', metavar='NAME', nargs=argparse.ZERO_OR_MORE,
-                    help="A name of something.")
+parser.add_argument('file', metavar='FILE', nargs=argparse.ZERO_OR_MORE,
+                    help="named input FILEs for lines containing a match to the given PATTERN.  If no files are specified, or if the file “-” is given, the standard input is used.")
+parser.add_argument(
+    '--parser',
+    choices=msg_parsers,
+    help="Parser for FILEs",
+)
+
+def read_files(file_names):
+    contents_of_files = []
+    if file_names:
+        for fname in file_names:
+            if fname == '-':
+                contents_of_files.append(sys.stdin.read())
+                continue
+            with open(fname, 'r') as msg_file:
+                contents_of_files.append(msg_file.read())
+    else:
+        contents_of_files.append(sys.stdin.read())
+    return contents_of_files
 
 
 def main(args=None):
     args = parser.parse_args(args=args)
-    print(args.names)
+    messages = read_files(args.file)
+
+    msg_parser = msg_parsers[args.parser]
+    formatted_msgs = [msg_parser(x) for x in messages]
+
+    windows = [notifier.get_window(x) for x in formatted_msgs]
+    notifier.gtk.main()
+    

@@ -2,7 +2,20 @@ from itertools import (
     islice as _islice,
     chain as _chain,
 )
-from collections import namedtuple as _namedtuple
+from collections import (namedtuple as _namedtuple,
+                         OrderedDict as _OrderedDict)
+
+
+class OrderedChoices(type):
+    @classmethod
+    def __prepare__(self, name, bases):
+        return _OrderedDict()
+
+    def __new__(self, name, bases, classdict):
+        classdict['choices'] = tuple(key for key in classdict.keys()
+                                if not key.startswith('_'))
+        return type.__new__(self, name, bases, classdict)
+
 
 def message_depth(msg, maxdepth=2, n=0):
     if isinstance(msg, str):

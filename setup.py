@@ -48,10 +48,7 @@ setup(
         'Operating System :: POSIX',
         'Operating System :: Microsoft :: Windows',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
@@ -75,6 +72,8 @@ setup(
     entry_points={
         'console_scripts': [
             'gpopup-send = gpopup.cli:main',
+            'gpopup-client = gpopup.cli:main_client',
+            'gpopup-server = gpopup.cli:main_server',
         ]
     },
 )

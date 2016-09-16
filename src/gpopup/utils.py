@@ -4,7 +4,8 @@ from itertools import (
 )
 from collections import (namedtuple as _namedtuple,
                          OrderedDict as _OrderedDict)
-
+import sys as _sys
+import logging as _logging
 
 class OrderedChoices(type):
     @classmethod
@@ -83,3 +84,51 @@ def format_tbl_msg(message='', columns=()):
     elif mdepth == 2:
         message = ensure_row_length(message, ncols=len(columns))
     return FormattedTblMsg(message, columns)
+
+
+def read_files(file_names):
+    contents_of_files = []
+    if file_names:
+        for fname in file_names:
+            if fname == '-':
+                contents_of_files.append(_sys.stdin.read())
+                continue
+            with open(fname, 'r') as msg_file:
+                contents_of_files.append(msg_file.read())
+    else:
+        contents_of_files.append(_sys.stdin.read())
+    return contents_of_files
+
+
+def get_app_logger(name=None, debug=True):
+    if debug:
+        logger = _logging.getLogger(__name__)
+        logger.setLevel(_logging.DEBUG)
+        handler = _logging.StreamHandler()
+        try:
+            from colorlog import ColoredFormatter
+            frmt = ColoredFormatter(
+                ('%(asctime)s @ %(log_color)s%(levelname)-8s%(reset)s @ '
+                 '%(module)s.%(funcName)s\n\t%(message)s'),
+                datefmt="%H:%M:%S",
+                reset=True,
+                log_colors={
+                    'DEBUG':    'cyan',
+                    'INFO':     'green',
+                    'WARNING':  'yellow',
+                    'ERROR':    'red',
+                    'CRITICAL': 'red,bg_white',
+                },
+            )
+        except ImportError:
+            frmt = _logging.Formatter(
+                ('%(asctime)s @ %(levelname)s @ '
+                 '%(module)s.%(funcName)s\n\t%(message)s'),
+                datefmt="%H:%M:%S",
+            )
+        handler.setFormatter(frmt)
+        logger.addHandler(handler)
+    else:
+        logger = _logging.getLogger(__name__)
+        logger.addHandler(_logging.NullHandler())
+    return logger

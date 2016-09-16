@@ -71,9 +71,9 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'gpopup-send = gpopup.cli:main',
-            'gpopup-client = gpopup.cli:main_client',
-            'gpopup-server = gpopup.cli:main_server',
+            'gpopup-send = gpopup.cli_send:main',
+            'gpopup-client = gpopup.cli_client:main',
+            'gpopup-server = gpopup.cli_server:main',
         ]
     },
 )

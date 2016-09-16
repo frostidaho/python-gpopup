@@ -1,77 +1,17 @@
-"""
-Module that contains the command line app.
-
-Why does this file exist, and why not put this in __main__?
-
-  You might be tempted to import things from __main__ later, but that will cause
-  problems: the code will get executed twice:
-
-  - When you run `python -mgpopup` python will execute
-    ``__main__.py`` as a script. That means there won't be any
-    ``gpopup.__main__`` in ``sys.modules``.
-  - When you import __main__ it will get executed again (as a module) because
-    there's no ``gpopup.__main__`` in ``sys.modules``.
-
-  Also see (1) from http://click.pocoo.org/5/setuptools/#setuptools-integration
-"""
 import argparse
 from gpopup import notifier
 from gpopup.message_parsers import Parse
 import gpopup.message_types as mtypes
 import gpopup.message_widgets as mwidgets
 from gpopup.window_utils import Position
+from gpopup.utils import get_app_logger
 import sys
 import json
-import logging
 
 SOCKET_NAME = 'gpopup/socket'
-
 DEBUG = True
+logger = get_app_logger(__name__, debug=DEBUG)
 
-log = logging.getLogger(__name__)
-if DEBUG:
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler()
-    try:
-        from colorlog import ColoredFormatter
-        frmt = ColoredFormatter(
-            ('%(asctime)s @ %(log_color)s%(levelname)-8s%(reset)s @ '
-             '%(module)s.%(funcName)s\n\t%(message)s'),
-            datefmt="%H:%M:%S",
-            reset=True,
-            log_colors={
-                'DEBUG':    'cyan',
-                'INFO':     'green',
-                'WARNING':  'yellow',
-                'ERROR':    'red',
-                'CRITICAL': 'red,bg_white',
-            },
-        )
-    except ImportError:
-        frmt = logging.Formatter(
-            ('%(asctime)s @ %(levelname)s @ '
-             '%(module)s.%(funcName)s\n\t%(message)s'),
-            datefmt="%H:%M:%S",
-        )
-    handler.setFormatter(frmt)
-    logger.addHandler(handler)
-
-
-def main_parser():
-    parser = argparse.ArgumentParser(description='Command description.')
-    parser.add_argument('file', metavar='FILE', nargs=argparse.ZERO_OR_MORE,
-                        help=("named input FILEs for lines containing a match"
-                              " to the given PATTERN.  If no files are specified,"
-                              " or if the file “-” is given, "
-                              "the standard input is used."))
-    parser.add_argument(
-        '--position',
-        default=Position.choices[0],
-        choices=Position.choices,
-        help="the position",
-    )
-    return parser
 
 def read_files(file_names):
     contents_of_files = []
@@ -85,28 +25,6 @@ def read_files(file_names):
     else:
         contents_of_files.append(sys.stdin.read())
     return contents_of_files
-
-
-def main(args=None):
-    parser = main_parser()
-    args = parser.parse_args(args=args)
-    messages = read_files(args.file)
-
-    formatted_msgs = []
-    tab = mtypes.Table
-    table_factories = [tab.from_json, tab.from_html, tab.from_text]
-    for msg in messages:
-        for fac in table_factories:
-            try:
-                formatted_msgs.append(fac(msg))
-                break
-            except mtypes.ParseError:
-                continue
-        else:
-            raise mtypes.ParseError("No parsing method was successful")
-    win = mwidgets.MainWindow(*formatted_msgs)
-    win.position = args.position
-    mwidgets.Gtk.main()
 
 
 def client_parser():
@@ -169,7 +87,7 @@ def client_parser():
     )
     return parser
 
-def main_client(args=None):
+def main(args=None):
     parser = client_parser()
 
     args = parser.parse_args(args=args)
@@ -196,7 +114,7 @@ def main_client(args=None):
         # formatted_msgs = [msg_parser(x) for x in messages]
         if msges:
             wid = client.new_window(*msges, position=args.position)
-            log.debug('Created window with id: {}'.format(wid))
+            logger.debug('Created window with id: {}'.format(wid))
             print(json.dumps({'notification_id': wid}))
 
     wid_cmds = ['hide', 'show', 'destroy']
@@ -210,21 +128,3 @@ def main_client(args=None):
     if args.timeout:
         client.timeout(timeout=args.timeout, notification_id=wid)
     return True
-
-
-def server_parser():
-    parser = argparse.ArgumentParser(description='GPopupServer Server.')
-    parser.add_argument('--force-bind', action='store_true')
-    parser.add_argument('--background', action='store_true')
-    return parser
-
-
-def main_server(args=None):
-    parser = server_parser()
-    args = parser.parse_args(args=args)
-    log.debug('force_bind = {}'.format(args.force_bind))
-    serv = notifier.NotifierServer(SOCKET_NAME, args.force_bind)
-    try:
-        serv.run(background=args.background)
-    except KeyboardInterrupt:
-        print('Got keyboard quit.', flush=True)

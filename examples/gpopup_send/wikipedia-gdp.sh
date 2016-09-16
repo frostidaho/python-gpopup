@@ -12,4 +12,4 @@ runcmd() {
 echo "The html table used in this example is sourced from:"
 echo "https://en.wikipedia.org/wiki/List_of_countries_by_GDP_(nominal)"
 echo "The table was cut and pasted from the page's source, but not cleaned up."
-runcmd "gpopup-send --parser html $data_dir/wiki_gdp.html"
+runcmd "gpopup-send $data_dir/wiki_gdp.html"

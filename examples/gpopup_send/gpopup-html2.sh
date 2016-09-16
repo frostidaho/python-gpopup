@@ -9,7 +9,7 @@ runcmd() {
     eval "$@"
 }
 
-runcmd "gpopup-send --parser html --position north $data_dir/table_ex2.html" &
-runcmd "gpopup-send --parser html --position center $data_dir/table_ex2_no_headers.html"
+runcmd "gpopup-send --position north $data_dir/table_ex2.html" &
+runcmd "gpopup-send --position center $data_dir/table_ex2_no_headers.html"
 
 

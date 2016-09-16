@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import gpopup.notifier
-from gpopup.utils import format_msg
+import gpopup.message_types as mtypes
 from time import sleep
 TIME_PAUSE = 0.5
 
@@ -14,7 +14,7 @@ client = gpopup.notifier.NotifierClient(sock_name='gpopup_example/notifier_socke
 client.start_server_maybe()
 
 with open(data_file('pizza.json'), 'rt') as fjson:
-    w_id = client.new_from_markup(fjson.read(), position='southwest', parser='json')
+    w_id = client.new_window(mtypes.Table.from_json(fjson.read()), position='southwest')
 
 sleep(TIME_PAUSE)
 # Explicitly passing notification_id is only necessary
@@ -28,7 +28,7 @@ client.hide(notification_id=w_id)
 sleep(TIME_PAUSE)
 
 with open(data_file('wiki_gdp.html'), 'rt') as wiki_gdp:
-    client.new_from_markup(wiki_gdp.read(), position='north', parser='html')
+    client.new_window(mtypes.Table.from_html(wiki_gdp.read()), position='north')
 
 client.show(w_id)    # Showing the pizza.json window
 sleep(TIME_PAUSE*2)

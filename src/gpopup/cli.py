@@ -17,17 +17,19 @@ Why does this file exist, and why not put this in __main__?
 import argparse
 from gpopup import notifier
 from gpopup.message_parsers import Parse
+import gpopup.message_types as mtypes
+import gpopup.message_widgets as mwidgets
 from gpopup.window_utils import Position
-import fileinput
 import sys
-
+import json
+import logging
 
 SOCKET_NAME = 'gpopup/socket'
 
 DEBUG = True
 
+log = logging.getLogger(__name__)
 if DEBUG:
-    import logging
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler()
@@ -64,12 +66,6 @@ def main_parser():
                               " or if the file “-” is given, "
                               "the standard input is used."))
     parser.add_argument(
-        '--parser',
-        default=Parse.choices[0],
-        choices=Parse.choices,
-        help="Parser for FILEs",
-    )
-    parser.add_argument(
         '--position',
         default=Position.choices[0],
         choices=Position.choices,
@@ -96,13 +92,22 @@ def main(args=None):
     args = parser.parse_args(args=args)
     messages = read_files(args.file)
 
-    msg_parser = getattr(Parse, args.parser)
-    formatted_msgs = [msg_parser(x) for x in messages]
+    formatted_msgs = []
+    tab = mtypes.Table
+    table_factories = [tab.from_json, tab.from_html, tab.from_text]
+    for msg in messages:
+        for fac in table_factories:
+            try:
+                formatted_msgs.append(fac(msg))
+                break
+            except mtypes.ParseError:
+                continue
+        else:
+            raise mtypes.ParseError("No parsing method was successful")
+    win = mwidgets.MainWindow(*formatted_msgs)
+    win.position = args.position
+    mwidgets.Gtk.main()
 
-    windows = [notifier.MainWindow(x) for x in formatted_msgs]
-    for win in windows:
-        win.position = args.position
-    notifier.gtk.main()
 
 def client_parser():
     parser = argparse.ArgumentParser(description='Command description.')
@@ -110,12 +115,6 @@ def client_parser():
                         help=("named input FILEs for lines containing a match"
                               " to the given PATTERN.  If the file “-” is given,"
                               "the standard input is used."))
-    parser.add_argument(
-        '--parser',
-        default=Parse.choices[0],
-        choices=Parse.choices,
-        help="Parser for FILEs",
-    )
     parser.add_argument(
         '--position',
         default=Position.choices[0],
@@ -185,12 +184,20 @@ def main_client(args=None):
         client.start_server_maybe()
 
     if args.file:
-        messages = read_files(args.file)
-        msg_parser = getattr(Parse, args.parser)
-        formatted_msgs = [msg_parser(x) for x in messages]
-        win_ids = [client.new_window(x, position=args.position) for x
-                   in formatted_msgs]
-        print('Created windows:', win_ids)
+        jmsges = [json.loads(x) for x in read_files(args.file)]
+        msges = []
+        for jmsg in jmsges:
+            if isinstance(jmsg, list):
+                msges.extend(jmsg)
+            else:
+                msges.append(jmsg)
+
+        msges = [mtypes.make_msg(**x) for x in msges]
+        # formatted_msgs = [msg_parser(x) for x in messages]
+        if msges:
+            wid = client.new_window(*msges, position=args.position)
+            log.debug('Created window with id: {}'.format(wid))
+            print(json.dumps({'notification_id': wid}))
 
     wid_cmds = ['hide', 'show', 'destroy']
     for cmd in wid_cmds:
@@ -215,7 +222,7 @@ def server_parser():
 def main_server(args=None):
     parser = server_parser()
     args = parser.parse_args(args=args)
-    print('force_bind = ', args.force_bind)
+    log.debug('force_bind = {}'.format(args.force_bind))
     serv = notifier.NotifierServer(SOCKET_NAME, args.force_bind)
     try:
         serv.run(background=args.background)

@@ -316,7 +316,8 @@ class Server(Marshall):
         cmd_name = message_obj['cmd_name']
         pargs = message_obj['pargs']
         kwargs = message_obj['kwargs']
-        _debug('Server received message for command {}'.format(cmd_name), pargs, kwargs)
+        # _debug('Server received message for command {}'.format(cmd_name), pargs, kwargs)
+        _debug('Server received message for command {}'.format(cmd_name))
         try:
             res = getattr(self, 'cmd_{}'.format(cmd_name))(*pargs, **kwargs)
         except Exception as e:
@@ -329,7 +330,6 @@ class Server(Marshall):
         return res
 
     def _socket_rdy(self, sock, cond):
-        # print(sock, cond)
         conn, client_address = sock.accept()
 
         obj = self.receive_obj(conn)
@@ -424,7 +424,8 @@ class BaseClient(Marshall, metaclass=MetaClient):
             'pargs': pargs,
             'kwargs': kwargs,
         }
-        _debug('Running command: {}'.format(cmd_name), pargs, kwargs)
+        # _debug('Running command: {}'.format(cmd_name), pargs, kwargs)
+        _debug('Running command: {}'.format(cmd_name))
 
         try:
             self._sock_info.timeout = self._conn_timeout

@@ -32,7 +32,7 @@ class TestHtml(unittest.TestCase):
         </table>
         """
 
-        res_w_headers = utils.FormattedMsg(
+        res_w_headers = utils.FormattedTblMsg(
             entries=(('Jill', 'Smith', '50'), ('Eve', 'Jackson', '94')),
             columns=('Firstname ok', 'Lastname', 'Age')
         )
@@ -59,7 +59,7 @@ class TestHtml(unittest.TestCase):
         </table>
         """
 
-        res_w_headers = utils.FormattedMsg(
+        res_w_headers = utils.FormattedTblMsg(
             entries=(
                 ('Firstname ok', 'Lastname', 'Age'),
                 ('Jill', 'Smith', '50'),
@@ -84,16 +84,16 @@ class TestJson(unittest.TestCase):
                 row = []
             row.append(c)
 
-        cls.raw_fn = staticmethod(utils.format_msg)
+        cls.raw_fn = staticmethod(utils.format_tbl_msg)
         cls.fn = staticmethod(message_parsers.json_to_2d_tuple)
         cls.data0 = {'message': tot, 'columns': len(tot[0])*['']}
-        cls.res0 = utils.format_msg(**cls.data0)
+        cls.res0 = utils.format_tbl_msg(**cls.data0)
         cls.json0 = json.dumps(cls.data0)
 
 
         cls.data1 = {'message': tot, 'columns': ['Col {}'.format(i)
                                                  for i in range(len(tot[0]))]}
-        cls.res1 = utils.format_msg(**cls.data1)
+        cls.res1 = utils.format_tbl_msg(**cls.data1)
         cls.json1 = json.dumps(cls.data1)
 
     def test_proper_dict(self):
@@ -129,7 +129,7 @@ class TestText(unittest.TestCase):
                 row = []
             row.append(c)
 
-        cls.raw_fn = staticmethod(utils.format_msg)
+        cls.raw_fn = staticmethod(utils.format_tbl_msg)
         cls.fn = staticmethod(message_parsers.text_to_2d_tuple)
 
     def test_basic(self):

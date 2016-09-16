@@ -1,5 +1,6 @@
 {
-    "message":[
+    "msg_type": "Table",
+    "body":[
         [
             "",
             "\u00a0World[8]",

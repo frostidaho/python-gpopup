@@ -104,9 +104,9 @@ class TestEnsureRowLength(unittest.TestCase):
         self.assertEqual(out, (('a', 'b', 'c'), ('d', fill, fill)))
 
 class TestMsg2Matrix(unittest.TestCase):
-    "Test utils.format_msg"
-    def assertIsFormattedMsg(self, x):
-        self.assertIsInstance(x, utils.FormattedMsg)
+    "Test utils.format_tbl_msg"
+    def assertIsFormattedTblMsg(self, x):
+        self.assertIsInstance(x, utils.FormattedTblMsg)
 
     def assertEntriesEqual(self, msgmatrix, y):
         self.assertEqual(msgmatrix.entries, y)
@@ -116,7 +116,7 @@ class TestMsg2Matrix(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.fn = staticmethod(utils.format_msg)
+        cls.fn = staticmethod(utils.format_tbl_msg)
         cls.data0 = 'some message'
         cls.col_tupl = ('Col0', 'Col1', 'Col2')
         cls.data5 = ('a', 'b', 'c', 'd', 'e')
@@ -124,43 +124,43 @@ class TestMsg2Matrix(unittest.TestCase):
 
     def test_0d_str(self):
         mm = self.fn(self.data0)
-        self.assertIsFormattedMsg(mm)
+        self.assertIsFormattedTblMsg(mm)
         self.assertEntriesEqual(mm, ((self.data0,),))
         self.assertColsEqual(mm, ('',))
 
     def test_0d_str_w_col(self):
         mm = self.fn(self.data0, columns=self.col_tupl[0:1])
-        self.assertIsFormattedMsg(mm)
+        self.assertIsFormattedTblMsg(mm)
         self.assertEntriesEqual(mm, ((self.data0,),))
         self.assertColsEqual(mm, (self.col_tupl[0],))
 
     def test_0d_str_w_cols(self):
         mm = self.fn(self.data0, columns=self.col_tupl)
-        self.assertIsFormattedMsg(mm)
+        self.assertIsFormattedTblMsg(mm)
         self.assertEntriesEqual(mm, ((self.data0, '', ''),))
         self.assertColsEqual(mm, self.col_tupl)
 
     def test_1d_str(self):
         mm = self.fn(self.data5)
-        self.assertIsFormattedMsg(mm)
+        self.assertIsFormattedTblMsg(mm)
         self.assertEntriesEqual(mm, tuple((x,) for x in self.data5))
         self.assertColsEqual(mm, ('',))
 
     def test_1d_str_w_2col(self):
         mm = self.fn(self.data5, columns=2)
-        self.assertIsFormattedMsg(mm)
+        self.assertIsFormattedTblMsg(mm)
         self.assertEntriesEqual(mm, (('a', 'b'), ('c', 'd'), ('e', '')))
         self.assertColsEqual(mm, ('', ''))
 
     def test_1d_str_w_3col(self):
         mm = self.fn(self.data5, columns=self.col_tupl)
-        self.assertIsFormattedMsg(mm)
+        self.assertIsFormattedTblMsg(mm)
         self.assertEntriesEqual(mm, (('a', 'b', 'c'), ('d', 'e', '')))
         self.assertColsEqual(mm, self.col_tupl)
 
     def test_2d_str_w_3col(self):
         mm = self.fn(self.data2d, columns=self.col_tupl)
-        self.assertIsFormattedMsg(mm)
+        self.assertIsFormattedTblMsg(mm)
         self.assertEntriesEqual(mm, (('a', 'b', 'c'), ('d', '', '')))
         self.assertColsEqual(mm, self.col_tupl)
         

@@ -64,8 +64,8 @@ def vector_to_matrix(vector, ncols=1, fill=''):
     return ensure_row_length(mat, ncols, fill)
 
 
-FormattedMsg = _namedtuple('FormattedMsg', 'entries columns')
-def format_msg(message='', columns=()):
+FormattedTblMsg = _namedtuple('FormattedTblMsg', 'entries columns')
+def format_tbl_msg(message='', columns=()):
     mdepth = message_depth(message)
     if isinstance(columns, int):
         columns = columns * ('',)
@@ -82,4 +82,4 @@ def format_msg(message='', columns=()):
         message = vector_to_matrix(message, ncols=len(columns))
     elif mdepth == 2:
         message = ensure_row_length(message, ncols=len(columns))
-    return FormattedMsg(message, columns)
+    return FormattedTblMsg(message, columns)

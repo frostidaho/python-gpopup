@@ -10,5 +10,5 @@ runcmd() {
 }
 
 echo "Information about prices for hot cheesy garbage"
-runcmd "gpopup-send --parser json --position northeast $data_dir/pizza.json"
+runcmd "gpopup-send --position northeast $data_dir/pizza.json"
 

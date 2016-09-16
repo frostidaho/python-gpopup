@@ -1,8 +1,7 @@
 import xml.etree.ElementTree as _ElementTree
 import json as _json
 from io import StringIO as _StringIO
-from collections import (namedtuple as _namedtuple,
-                         OrderedDict as _OrderedDict)
+from collections import (namedtuple as _namedtuple,)
 from gpopup import utils as _utils
 
 _TextTag = _namedtuple('_TextTag', 'text tag')
@@ -24,7 +23,7 @@ def html_to_2d_tuple(html_string):
                 cols = tuple(x.text for x in row)
                 continue
         new_rows.append(tuple(x.text for x in row))
-    return _utils.format_msg(tuple(new_rows), columns=cols)
+    return _utils.format_tbl_msg(tuple(new_rows), columns=cols)
 
 def json_to_2d_tuple(json_string):
     dat = _json.loads(json_string)
@@ -35,7 +34,7 @@ def json_to_2d_tuple(json_string):
         msg = dat.get('message', msg)
     else:
         msg = dat
-    return _utils.format_msg(msg, columns=cols)
+    return _utils.format_tbl_msg(msg, columns=cols)
 
 
 def text_to_2d_tuple(txt_string, col_sep='\t', row_sep='\n',
@@ -51,7 +50,7 @@ def text_to_2d_tuple(txt_string, col_sep='\t', row_sep='\n',
             cols = [x.strip() for x in cols.split(col_sep)]
             continue
         rows.append([x.strip() for x in row.split(col_sep)])
-    return _utils.format_msg(rows, columns=cols)
+    return _utils.format_tbl_msg(rows, columns=cols)
 
 
 class Parse(metaclass=_utils.OrderedChoices):

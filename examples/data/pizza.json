@@ -1,5 +1,6 @@
 {
-    "message":[
+    "msg_type": "Table",
+    "body":[
         [
             10.0,
             11.99,

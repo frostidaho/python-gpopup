@@ -100,9 +100,10 @@ def read_files(file_names):
     return contents_of_files
 
 
-def get_app_logger(name=None, debug=True):
+def get_app_logger(debug=True):
+    LOGGER_NAME = 'gpopup'
     if debug:
-        logger = _logging.getLogger(__name__)
+        logger = _logging.getLogger(LOGGER_NAME)
         logger.setLevel(_logging.DEBUG)
         handler = _logging.StreamHandler()
         try:
@@ -129,6 +130,6 @@ def get_app_logger(name=None, debug=True):
         handler.setFormatter(frmt)
         logger.addHandler(handler)
     else:
-        logger = _logging.getLogger(__name__)
+        logger = _logging.getLogger(LOGGER_NAME)
         logger.addHandler(_logging.NullHandler())
     return logger

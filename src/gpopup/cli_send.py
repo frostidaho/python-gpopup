@@ -6,7 +6,7 @@ from gpopup.utils import read_files, get_app_logger
 from gpopup.window_utils import Position
 
 DEBUG = True
-logger = get_app_logger(__name__, debug=DEBUG)
+logger = get_app_logger(debug=DEBUG)
 
 def main_parser():
     parser = argparse.ArgumentParser(description='Command description.')

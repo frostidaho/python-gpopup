@@ -6,7 +6,7 @@ from gpopup.utils import get_app_logger
 
 SOCKET_NAME = 'gpopup/socket'
 DEBUG = True
-logger = get_app_logger(__name__, debug=DEBUG)
+logger = get_app_logger(debug=DEBUG)
 
 def server_parser():
     parser = argparse.ArgumentParser(description='GPopupServer Server.')

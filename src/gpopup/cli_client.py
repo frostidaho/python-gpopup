@@ -10,7 +10,7 @@ import json
 
 SOCKET_NAME = 'gpopup/socket'
 DEBUG = True
-logger = get_app_logger(__name__, debug=DEBUG)
+logger = get_app_logger(debug=DEBUG)
 
 
 def read_files(file_names):

@@ -1,8 +1,6 @@
 import argparse
-from gpopup import notifier
-from gpopup.message_parsers import Parse
-import gpopup.message_types as mtypes
-import gpopup.message_widgets as mwidgets
+from gpopup.notifier import NotifierClient
+from gpopup.message_types import make_msg
 from gpopup.window_utils import Position
 from gpopup.utils import get_app_logger
 import sys
@@ -94,7 +92,7 @@ def main(args=None):
     wid = args.notification_id
     wid = wid if wid else None
 
-    client = notifier.NotifierClient(SOCKET_NAME)
+    client = NotifierClient(SOCKET_NAME)
     if args.kill_server:
         client.kill_server()
         return
@@ -110,7 +108,7 @@ def main(args=None):
             else:
                 msges.append(jmsg)
 
-        msges = [mtypes.make_msg(**x) for x in msges]
+        msges = [make_msg(**x) for x in msges]
         # formatted_msgs = [msg_parser(x) for x in messages]
         if msges:
             wid = client.new_window(*msges, position=args.position)
@@ -127,4 +125,4 @@ def main(args=None):
 
     if args.timeout:
         client.timeout(timeout=args.timeout, notification_id=wid)
-    return True
+    return 0

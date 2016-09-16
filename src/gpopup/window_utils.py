@@ -105,14 +105,3 @@ class Position(metaclass=OrderedChoices):
         elif position == 2:
             return mon_geom.bottom - self.height - (2 * BORDER_THICKNESS)
         raise ValueError('position must be 0, 1, or 2')
-
-
-# def center(x, y, width, height):
-#     mon_geom = monitor_geometry()
-#     mon_ctr_x = (mon_geom.left + mon_geom.right) // 2
-#     mon_ctr_y = (mon_geom.top + mon_geom.bottom) // 2
-#     new_x = mon_ctr_x - (width // 2)
-#     new_y = mon_ctr_y - (height // 2)
-#     return MoveResize(new_x, new_y, width, height)
-
-

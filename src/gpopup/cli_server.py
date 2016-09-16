@@ -23,3 +23,7 @@ def main(args=None):
         serv.run(background=args.background)
     except KeyboardInterrupt:
         print('Got keyboard quit.', flush=True)
+        # http://tldp.org/LDP/abs/html/exitcodes.html
+        return 130
+    return 0
+

@@ -43,3 +43,4 @@ def main(args=None):
     win = mwidgets.MainWindow(*formatted_msgs)
     win.position = args.position
     mwidgets.Gtk.main()
+    return 0

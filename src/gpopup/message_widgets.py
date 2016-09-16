@@ -148,13 +148,16 @@ class TableWidget(BaseWidget):
 
 class SimpleWidget(BaseWidget):
     def _init_widget(self):
-        self.body = self.new_label(self.message.body)
-        summary = '<b>{}</b>'.format(self.message.summary)
-        self.summary = self.new_label(summary)
         box =  Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         # https://developer.gnome.org/gtk3/stable/GtkBox.html#gtk-box-pack-start
-        box.pack_start(self.summary, False, True, 0)
-        box.pack_start(self.body, False, True, 0)
+        if self.message.summary:
+            summary = '<b>{}</b>'.format(self.message.summary)
+            self.summary = self.new_label(summary)
+            box.pack_start(self.summary, False, True, 0)
+
+        if self.message.body:
+            self.body = self.new_label(self.message.body)
+            box.pack_start(self.body, False, True, 0)
         self._primary = box
 
     @staticmethod
@@ -166,6 +169,7 @@ class SimpleWidget(BaseWidget):
 
 class MainWindow(Gtk.Window):
     nwins = 0
+    win_id = 0
     _position = 'center'
 
     def __init__(self, *messages):
@@ -190,6 +194,7 @@ class MainWindow(Gtk.Window):
         self.set_icon_name("dialog-information")
         
         self.__class__.nwins += 1
+        self.win_id = self.next_win_id()
         self.connect("destroy", self.remove_window, None)
         self.connect("key-press-event", self.on_key_press)
         self.connect("button-release-event", self.on_button_release)
@@ -254,6 +259,11 @@ class MainWindow(Gtk.Window):
             timeout,
             self.destroy,
         )
+
+    @classmethod
+    def next_win_id(cls):
+        cls.win_id += 1
+        return cls.win_id
 
     @property
     def monitor_geometry(self):

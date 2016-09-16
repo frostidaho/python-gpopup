@@ -53,10 +53,9 @@ lint: ## check style with flake8
 
 test: ## run tests quickly with the default Python
 	py.test $(project_dir)/tests
-	
 
-test-all: ## run tests on every Python version with tox
-	tox
+test-all: ## run normal tests and example scripts
+	py.test $(project_dir)/tests $(project_dir)/examples/tests
 
 docs: ## generate Sphinx HTML documentation, including API docs
 	rm -f docs/gpopup.rst

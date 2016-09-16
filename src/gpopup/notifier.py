@@ -1,7 +1,6 @@
 import gpopup.ipc as ipc
 from gpopup.message_widgets import MainWindow
 from collections import OrderedDict as _OrderedDict
-# import gpopup.message_widgets as _mwidgets
 
 
 class NotifierServer(ipc.Server):
@@ -9,15 +8,12 @@ class NotifierServer(ipc.Server):
     def __init__(self, sock_name=ipc._DEFAULT_SOCK_NAME, force_bind=False):
         super().__init__(sock_name=sock_name, force_bind=force_bind)
         MainWindow.nwins += 1   # This is so that MainWindow doesn't kill the gtk.main loop
-        self.notification_id = 0
         self.notifications = _OrderedDict()
-        # self.position = position
 
     def cmd_new_window(self, *messages, position=None):
-        self.notification_id += 1
-        n_id = self.notification_id
         win = MainWindow(*messages)
-        win.notification_id = n_id
+        n_id = win.win_id
+        self.notification_id = n_id
         win.connect("destroy", self._remove_notif_id, n_id)
         if position is None:
             win.position = self.position
@@ -47,6 +43,7 @@ class NotifierServer(ipc.Server):
         try:
             self.notification_id = list(self.notifications)[-1]
         except IndexError:
+            # FIXME this should probably be something like MainWindow.win_id
             self.notification_id = 0
 
     def cmd_destroy(self, notification_id=None):

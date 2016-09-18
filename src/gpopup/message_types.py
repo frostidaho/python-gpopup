@@ -1,10 +1,13 @@
 from gpopup.utils import format_tbl_msg as _format_tbl_msg
 import gpopup.message_widgets as _widgets
 from collections import (namedtuple as _namedtuple,
-                         OrderedDict as _OrderedDict)
-import xml.etree.ElementTree as _ElementTree
-from io import StringIO as _StringIO
+                         OrderedDict as _OrderedDict,
+                         UserList as _UserList)
+# import xml.etree.ElementTree as _ElementTree
+# from io import StringIO as _StringIO
 import json as _json
+# import inspect as _inspect
+# import functools as _functools
 
 
 class ParseError(Exception):
@@ -36,6 +39,7 @@ class BaseMessage(metaclass=MetaRegister):
 
     @classmethod
     def from_html(cls, html_string, *pargs, **kwargs):
+        import xml.etree.ElementTree as _ElementTree
         try:
             return cls(**cls._from_html(html_string, *pargs, **kwargs))
         except _ElementTree.ParseError:
@@ -123,7 +127,8 @@ class Table(BaseMessage):
     def _from_html(html_string, *pargs, **kwargs):
         def _transform_html_row(row):
             return tuple(_TextTag(''.join(x.itertext()), x.tag) for x in row)
-
+        import xml.etree.ElementTree as _ElementTree
+        from io import StringIO as _StringIO
         html_file = _StringIO(html_string)
         tree = _ElementTree.parse(html_file)
         rows = tree.getiterator('tr')
@@ -171,9 +176,46 @@ class Table(BaseMessage):
 
 
 def make_msg(msg_type='Simple', **msg_keywords):
+    # TODO Remove and replace with the Messages class (new_messages())
     msg_type = msg_keywords.pop('msg_type', msg_type)
     if isinstance(msg_type, str):
         Msg = choices[msg_type]
     else:
         Msg = msg_type
     return Msg(**msg_keywords)
+
+
+def _add_messages(cls):
+    import inspect as _inspect
+    import functools as _functools
+    def add_msg_method(Msg):
+        sig = _inspect.signature(Msg)
+        pself = _inspect.Parameter('self', _inspect.Parameter.POSITIONAL_OR_KEYWORD)
+        sig2 = _inspect.Signature([pself] + list(sig.parameters.values()))
+        @_functools.wraps(Msg)
+        def wrapper(self, *pargs, **kwargs):
+            out = Msg(*pargs, **kwargs)
+            self.append(out)
+            return out
+        wrapper.__signature__ = sig2
+        return wrapper
+
+    for k,v in choices.items():
+        setattr(cls, k, add_msg_method(v))
+    return cls
+
+
+# @_add_messages
+class _Messages(_UserList):
+    def make_window(self):
+        window = _widgets.MainWindow(*self.data)
+        # self.window = window
+        return window
+
+    def run_blocking(self):
+        _widgets.Gtk.main()
+
+def new_messages():
+    global _Messages
+    _Messages = _add_messages(_Messages)
+    return _Messages()

@@ -2,10 +2,10 @@ from itertools import (
     islice as _islice,
     chain as _chain,
 )
-from collections import (namedtuple as _namedtuple,
-                         OrderedDict as _OrderedDict)
-import sys as _sys
-import logging as _logging
+from collections import (
+    namedtuple as _namedtuple,
+    OrderedDict as _OrderedDict,
+)
 
 class OrderedChoices(type):
     @classmethod
@@ -87,6 +87,7 @@ def format_tbl_msg(message='', columns=()):
 
 
 def read_files(file_names):
+    import sys as _sys
     contents_of_files = []
     if file_names:
         for fname in file_names:
@@ -101,6 +102,7 @@ def read_files(file_names):
 
 
 def get_app_logger(debug=True):
+    import logging as _logging
     LOGGER_NAME = 'gpopup'
     if debug:
         logger = _logging.getLogger(LOGGER_NAME)

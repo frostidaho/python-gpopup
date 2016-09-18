@@ -6,7 +6,7 @@ from gpopup.utils import get_app_logger
 import sys
 import json
 
-SOCKET_NAME = 'gpopup/socket'
+# SOCKET_NAME = 'gpopup/socket'
 DEBUG = True
 logger = get_app_logger(debug=DEBUG)
 
@@ -92,7 +92,7 @@ def main(args=None):
     wid = args.notification_id
     wid = wid if wid else None
 
-    client = NotifierClient(SOCKET_NAME)
+    client = NotifierClient()
     if args.kill_server:
         client.kill_server()
         return

@@ -4,7 +4,7 @@ import logging
 from gpopup import notifier
 from gpopup.utils import get_app_logger
 
-SOCKET_NAME = 'gpopup/socket'
+
 DEBUG = True
 logger = get_app_logger(debug=DEBUG)
 
@@ -18,7 +18,7 @@ def main(args=None):
     parser = server_parser()
     args = parser.parse_args(args=args)
     logger.debug('force_bind = {}'.format(args.force_bind))
-    serv = notifier.NotifierServer(SOCKET_NAME, args.force_bind)
+    serv = notifier.NotifierServer(force_bind=args.force_bind)
     try:
         serv.run(background=args.background)
     except KeyboardInterrupt:

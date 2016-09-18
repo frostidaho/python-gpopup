@@ -3,9 +3,13 @@ from gpopup.message_widgets import MainWindow
 from collections import OrderedDict as _OrderedDict
 
 
+_SOCKET_NAME = 'gpopup/socket'
+
+
 class NotifierServer(ipc.Server):
     position = 'center'
-    def __init__(self, sock_name=ipc._DEFAULT_SOCK_NAME, force_bind=False):
+    sock_name = _SOCKET_NAME
+    def __init__(self, sock_name=_SOCKET_NAME, force_bind=False):
         super().__init__(sock_name=sock_name, force_bind=force_bind)
         MainWindow.nwins += 1   # This is so that MainWindow doesn't kill the gtk.main loop
         self.notifications = _OrderedDict()

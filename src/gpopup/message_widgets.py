@@ -9,6 +9,7 @@ from gi.repository import Gdk
 from gi.repository import GLib
 
 from gpopup.window_utils import Position, monitor_geometry
+from collections import namedtuple as _namedtuple
 
 class PyListStore(Gtk.ListStore):
     def extend(self, rows):
@@ -166,7 +167,7 @@ class SimpleWidget(BaseWidget):
         label.set_use_markup(use_markup)
         return label
 
-
+_DestroyInfo = _namedtuple('_DestroyInfo', 'id timeout')
 class MainWindow(Gtk.Window):
     nwins = 0
     win_id = 0
@@ -174,6 +175,8 @@ class MainWindow(Gtk.Window):
 
     def __init__(self, *messages):
         super().__init__()
+        self._scheduled_destroyers = set()
+        self._new_destroyers = set()
 
         box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         lb = Gtk.ListBox()
@@ -198,7 +201,8 @@ class MainWindow(Gtk.Window):
         self.connect("destroy", self.remove_window, None)
         self.connect("key-press-event", self.on_key_press)
         self.connect("button-release-event", self.on_button_release)
-        # self.map_event_handler = self.connect('map-event', self.movewin)
+        self.connect("focus-in-event", self.rm_timeout_destroy)
+        self.connect("focus-out-event", self.add_timeout_destroy)
         
 
         keynames = ['Escape']
@@ -254,11 +258,27 @@ class MainWindow(Gtk.Window):
     def on_button_release(self, widget, event):
         self.destroy()
 
+    def add_timeout_destroy(self, widget, event):
+        for timeout in self._new_destroyers:
+            self.timeout_destroy(timeout)
+        self._new_destroyers.clear()
+
+    def rm_timeout_destroy(self, widget, event):
+        _log.debug('Unscheduling widget.destroy: {}'.format(self._scheduled_destroyers))
+        for timeout_destr in list(self._scheduled_destroyers):
+            GLib.source_remove(timeout_destr.id)
+            self._scheduled_destroyers.discard(timeout_destr)
+            self._new_destroyers.add(timeout_destr.timeout)
+
     def timeout_destroy(self, timeout=1.0):
-        GLib.timeout_add_seconds(
+        id_destr = GLib.timeout_add_seconds(
             timeout,
             self.destroy,
         )
+        dinfo = _DestroyInfo(id_destr, timeout)
+        _log.debug('Scheduling widget.destroy: {}'.format(dinfo))
+        self._scheduled_destroyers.add(dinfo)
+        return dinfo
 
     @classmethod
     def next_win_id(cls):

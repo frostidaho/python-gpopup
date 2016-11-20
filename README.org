@@ -1,0 +1,41 @@
+* Overview
+/python-gpopup/ is a notification system using Gtk3.
+
+It has a client/server mode as well as a standalone mode.
+
+The executable notification tools included are
+- gpopup-send :: standalone notification tool
+- gpopup-client :: create notifications displayed by server
+- gpopup-server :: the server which creates clients for gpopup-client
+
+/gpopup/ can also be used for creating notifications in python code.
+ 
+* Example python usage
+
+#+BEGIN_SRC python
+  import gpopup.notifier as notifier
+  import gpopup.message_types as message_types
+
+  client = notifier.NotifierClient()
+  client.start_server_maybe()
+
+  pre_msg = message_types.Simple(
+      summary='Some summary',
+      body='And some body',
+  )
+
+  table_msg = message_types.Table(
+      body=range(100),
+      columns=('Col 1', 'Col 2', 'Col 3', 'Col 4'),
+  )
+
+  notification_id = client.new_window(pre_msg, table_msg, pre_msg,
+                                      position='northeast')
+  client.timeout(timeout=10.0, notification_id=notification_id)
+  # from time import sleep
+  # sleep(20.0)
+  # client.destroy(window_id)
+  # client.kill_server()
+#+END_SRC
+
+[[file:examples/output_images/readme_python_example.png]]

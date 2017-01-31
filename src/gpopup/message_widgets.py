@@ -7,9 +7,14 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GLib
+# Set font of a CellRendererText using Pango
+# http://faq.pygtk.org/index.py?req=show&file=faq13.040.htp
+gi.require_version('Pango', '1.0')
+from gi.repository import Pango
 
 from gpopup.window_utils import Position, monitor_geometry
 from collections import namedtuple as _namedtuple
+from itertools import repeat as _repeat
 
 class PyListStore(Gtk.ListStore):
     def extend(self, rows):
@@ -65,6 +70,7 @@ class TableWidget(BaseWidget):
     min_rows = 2
     max_rows = 11
     max_col_width_frac = 0.33
+    columns_font = ''
 
     def _init_widget(self):
         ls = self.get_liststore(self.message)
@@ -77,16 +83,25 @@ class TableWidget(BaseWidget):
         sel.set_mode(Gtk.SelectionMode.NONE)
 
         max_col_width = int(self.max_col_width_frac * self.monitor_geometry.width)
-        for i, col in enumerate(self.message.columns):
-            tv_col = self._make_treeview_col(idx=i, colname=col, max_col_width=max_col_width)
+        columns_font = self.columns_font
+        if isinstance(columns_font, str):
+            col_n_font = zip(self.message.columns, _repeat(columns_font))
+        else:
+            col_n_font = zip(self.message.columns, columns_font)
+        for i, cnf in enumerate(col_n_font):
+            col, font = cnf[0], cnf[1]
+            tv_col = self._make_treeview_col(idx=i, colname=col, max_col_width=max_col_width, font=font)
             self.tree.append_column(tv_col)
         self.show_headers = any(self.message.columns)
 
     @staticmethod
-    def _make_treeview_col(idx=0, colname='', max_col_width=500):
+    def _make_treeview_col(idx=0, colname='', max_col_width=500, font=''):
         nc = Gtk.TreeViewColumn.new()
         nc.set_title(colname)
         renderer = Gtk.CellRendererText()
+        if font:
+            font_descr = Pango.font_description_from_string(font)
+            renderer.set_property('font-desc', font_descr)
         nc.set_alignment(0.5)
         # nc.set_resizable(True)
         renderer.set_alignment(0.5, 0.5)
@@ -113,6 +128,17 @@ class TableWidget(BaseWidget):
     @show_headers.setter
     def show_headers(self, val):
         self.tree.set_headers_visible(val)
+
+    # @property
+    # def columns_font(self):
+    #     try:
+    #         return self._columns_font
+    #     except AttributeError:
+    #         return ''
+
+    # @columns_font.setter
+    # def columns_font(self, val):
+    #     self._columns_font = val
 
     @property
     def primary(self):

@@ -97,19 +97,16 @@ class TableWidget(BaseWidget):
         self.show_headers = any(self.message.columns)
 
     @staticmethod
-    def _make_treeview_col(idx=0, colname='', max_col_width=500, font='', alignment=Pango.Alignment.LEFT):
+    def _make_treeview_col(idx=0, colname='', max_col_width=500, font='', alignment=0.5):
         nc = Gtk.TreeViewColumn.new()
         nc.set_title(colname)
         renderer = Gtk.CellRendererText()
         if font:
             font_descr = Pango.font_description_from_string(font)
             renderer.set_property('font-desc', font_descr)
-        # renderer.set_property('alignment', alignment)
         nc.set_alignment(0.5)
         # nc.set_resizable(True)
         renderer.set_alignment(alignment, 0.5)
-        # renderer.set_alignment(0.5, 0.5)
-        # renderer.set_property('alignment', alignment)
         # https://developer.gnome.org/gtk3/stable/GtkTreeViewColumn.html#gtk-tree-view-column-set-expand
         nc.set_expand(True)
         nc.pack_start(renderer, expand=True)

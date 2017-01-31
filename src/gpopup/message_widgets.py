@@ -15,6 +15,7 @@ from gi.repository import Pango
 from gpopup.window_utils import Position, monitor_geometry
 from collections import namedtuple as _namedtuple
 from itertools import repeat as _repeat
+from itertools import zip_longest as _zip_longest
 
 class PyListStore(Gtk.ListStore):
     def extend(self, rows):
@@ -85,26 +86,30 @@ class TableWidget(BaseWidget):
         max_col_width = int(self.max_col_width_frac * self.monitor_geometry.width)
         columns_font = self.columns_font
         if isinstance(columns_font, str):
-            col_n_font = zip(self.message.columns, _repeat(columns_font))
+            col_n_font = zip(self.message.columns, _repeat(columns_font), self.columns_alignment)
         else:
-            col_n_font = zip(self.message.columns, columns_font)
+            col_n_font = zip(self.message.columns, columns_font, self.columns_alignment)
         for i, cnf in enumerate(col_n_font):
-            col, font = cnf[0], cnf[1]
-            tv_col = self._make_treeview_col(idx=i, colname=col, max_col_width=max_col_width, font=font)
+            # col, font, align = cnf[0], cnf[1], cnf[2]
+            col, font, align = cnf
+            tv_col = self._make_treeview_col(idx=i, colname=col, max_col_width=max_col_width, font=font, alignment=align)
             self.tree.append_column(tv_col)
         self.show_headers = any(self.message.columns)
 
     @staticmethod
-    def _make_treeview_col(idx=0, colname='', max_col_width=500, font=''):
+    def _make_treeview_col(idx=0, colname='', max_col_width=500, font='', alignment=Pango.Alignment.LEFT):
         nc = Gtk.TreeViewColumn.new()
         nc.set_title(colname)
         renderer = Gtk.CellRendererText()
         if font:
             font_descr = Pango.font_description_from_string(font)
             renderer.set_property('font-desc', font_descr)
+        # renderer.set_property('alignment', alignment)
         nc.set_alignment(0.5)
         # nc.set_resizable(True)
-        renderer.set_alignment(0.5, 0.5)
+        renderer.set_alignment(alignment, 0.5)
+        # renderer.set_alignment(0.5, 0.5)
+        # renderer.set_property('alignment', alignment)
         # https://developer.gnome.org/gtk3/stable/GtkTreeViewColumn.html#gtk-tree-view-column-set-expand
         nc.set_expand(True)
         nc.pack_start(renderer, expand=True)
@@ -128,6 +133,42 @@ class TableWidget(BaseWidget):
     @show_headers.setter
     def show_headers(self, val):
         self.tree.set_headers_visible(val)
+
+    @property
+    def columns_alignment(self):
+        try:
+            ca = self._columns_alignment
+        except AttributeError:
+            return _repeat(0.5)
+            # return _repeat(Pango.Alignment.CENTER)
+        d = {
+            'LEFT': 0.0,
+            'CENTER': 0.5,
+            'RIGHT': 1.0,
+        }
+
+        if isinstance(ca, str):
+            # return _repeat(getattr(Pango.Alignment, ca))
+            return _repeat(d[ca])
+        else:
+            # return [getattr(Pango.Alignment, x) for x in ca]
+            return [d[x] for x in ca]
+
+    @columns_alignment.setter
+    def columns_alignment(self, val):
+        aligns = set(('LEFT', 'RIGHT', 'CENTER'))
+        def test_str(val_str):
+            if val_str not in aligns:
+                raise ValueError('Alignment {!r} is not one of {!r}'.format(val, aligns))
+        if isinstance(val, str):
+            val = val.upper()
+            test_str(val)
+            self._columns_alignment = val
+        else:
+            vals = [x.upper() for x in val]
+            for val_str in vals:
+                test_str(val_str)
+            self._columns_alignment = vals
 
     # @property
     # def columns_font(self):

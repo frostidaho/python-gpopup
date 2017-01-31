@@ -140,18 +140,14 @@ class TableWidget(BaseWidget):
             ca = self._columns_alignment
         except AttributeError:
             return _repeat(0.5)
-            # return _repeat(Pango.Alignment.CENTER)
         d = {
             'LEFT': 0.0,
             'CENTER': 0.5,
             'RIGHT': 1.0,
         }
-
         if isinstance(ca, str):
-            # return _repeat(getattr(Pango.Alignment, ca))
             return _repeat(d[ca])
         else:
-            # return [getattr(Pango.Alignment, x) for x in ca]
             return [d[x] for x in ca]
 
     @columns_alignment.setter

@@ -71,7 +71,7 @@ class TableWidget(BaseWidget):
     min_rows = 2
     max_rows = 11
     max_col_width_frac = 0.33
-    columns_font = ''
+    # columns_font = ''
 
     def _init_widget(self):
         ls = self.get_liststore(self.message)
@@ -84,13 +84,8 @@ class TableWidget(BaseWidget):
         sel.set_mode(Gtk.SelectionMode.NONE)
 
         max_col_width = int(self.max_col_width_frac * self.monitor_geometry.width)
-        columns_font = self.columns_font
-        if isinstance(columns_font, str):
-            col_n_font = zip(self.message.columns, _repeat(columns_font), self.columns_alignment)
-        else:
-            col_n_font = zip(self.message.columns, columns_font, self.columns_alignment)
+        col_n_font = zip(self.message.columns, self.columns_font, self.columns_alignment)
         for i, cnf in enumerate(col_n_font):
-            # col, font, align = cnf[0], cnf[1], cnf[2]
             col, font, align = cnf
             tv_col = self._make_treeview_col(idx=i, colname=col, max_col_width=max_col_width, font=font, alignment=align)
             self.tree.append_column(tv_col)
@@ -163,16 +158,20 @@ class TableWidget(BaseWidget):
                 test_str(val_str)
             self._columns_alignment = vals
 
-    # @property
-    # def columns_font(self):
-    #     try:
-    #         return self._columns_font
-    #     except AttributeError:
-    #         return ''
+    @property
+    def columns_font(self):
+        try:
+            cf = self._columns_font
+        except AttributeError:
+            return _repeat('')
+        if isinstance(cf, str):
+            return _repeat(cf)
+        else:
+            return cf
 
-    # @columns_font.setter
-    # def columns_font(self, val):
-    #     self._columns_font = val
+    @columns_font.setter
+    def columns_font(self, val):
+        self._columns_font = val
 
     @property
     def primary(self):

@@ -39,3 +39,21 @@ The executable notification tools included are
 #+END_SRC
 
 [[file:examples/output_images/readme_python_example.png]]
+
+* Installation
+
+#+BEGIN_SRC sh
+git clone https://github.com/frostidaho/python-gpopup.git
+pip install --user ./python-gpopup
+#+END_SRC
+
+* Testing
+** Running just unit tests
+#+BEGIN_SRC sh
+make test
+#+END_SRC
+
+** Running unit tests and example scripts
+#+BEGIN_SRC sh
+make test-all
+#+END_SRC

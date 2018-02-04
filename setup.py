@@ -15,22 +15,12 @@ from setuptools import find_packages
 from setuptools import setup
 
 
-def read(*names, **kwargs):
-    return io.open(
-        join(dirname(__file__), *names),
-        encoding=kwargs.get('encoding', 'utf8')
-    ).read()
-
-
 setup(
     name='gpopup',
     version='0.1.0',
     license='BSD',
     description='Popup menu using GTK3',
-    long_description='%s\n%s' % (
-        re.compile('^.. start-badges.*^.. end-badges', re.M | re.S).sub('', read('README.org')),
-        re.sub(':[a-z]+:`~?(.*?)`', r'``\1``', read('CHANGELOG.rst'))
-    ),
+    long_description='Popup menu using GTK3',
     author='Idaho Frost',
     author_email='frostidaho@gmail.com',
     url='https://github.com/frostidaho/python-gpopup',

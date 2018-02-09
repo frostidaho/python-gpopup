@@ -1,17 +1,15 @@
-from gpopup.utils import format_tbl_msg as _format_tbl_msg
-import gpopup.message_widgets as _widgets
-from collections import (namedtuple as _namedtuple,
-                         OrderedDict as _OrderedDict,
-                         UserList as _UserList)
-# import xml.etree.ElementTree as _ElementTree
-# from io import StringIO as _StringIO
 import json as _json
-# import inspect as _inspect
-# import functools as _functools
+from collections import OrderedDict as _OrderedDict
+from collections import UserList as _UserList
+from collections import namedtuple as _namedtuple
+
+import gpopup.message_widgets as _widgets
+from gpopup.utils import format_tbl_msg as _format_tbl_msg
 
 
 class ParseError(Exception):
     pass
+
 
 choices = _OrderedDict()
 
@@ -188,10 +186,12 @@ def make_msg(msg_type='Simple', **msg_keywords):
 def _add_messages(cls):
     import inspect as _inspect
     import functools as _functools
+
     def add_msg_method(Msg):
         sig = _inspect.signature(Msg)
         pself = _inspect.Parameter('self', _inspect.Parameter.POSITIONAL_OR_KEYWORD)
         sig2 = _inspect.Signature([pself] + list(sig.parameters.values()))
+
         @_functools.wraps(Msg)
         def wrapper(self, *pargs, **kwargs):
             out = Msg(*pargs, **kwargs)
@@ -200,7 +200,7 @@ def _add_messages(cls):
         wrapper.__signature__ = sig2
         return wrapper
 
-    for k,v in choices.items():
+    for k, v in choices.items():
         setattr(cls, k, add_msg_method(v))
     return cls
 
@@ -214,6 +214,7 @@ class _Messages(_UserList):
 
     def run_blocking(self):
         _widgets.Gtk.main()
+
 
 def new_messages():
     global _Messages

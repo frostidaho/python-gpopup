@@ -1,30 +1,30 @@
-import sys
-import socket
 import json
-import pickle
+import logging as _logging
 import os
+import pickle
+import socket
 import struct
+import sys
 import traceback
 from collections import namedtuple as _namedtuple
 from functools import wraps as _wraps
-from time import (sleep as _sleep,
-                  time as _time,)
-import logging as _logging
 from pprint import pformat as _pformat
+from time import sleep as _sleep
+from time import time as _time
 
 from gi.repository import GLib
-
 
 _log = _logging.getLogger(__name__)
 _log.addHandler(_logging.NullHandler())
 # TODO replace _debug with something else or fix it
 # in the log records _debug shows up as the calling function
+
+
 def _debug(*pargs):
     formatted = (_pformat(x) for x in pargs)
     return _log.debug('\n\t'.join(formatted))
 
 
-_DEFAULT_SOCK_NAME = 'ipc/sock'
 _DEFAULT_CONN_TIMEOUT = 0.2
 _SMALL_EPSILON = 1.0e-6
 _SerialMsg = _namedtuple('_SerialMsg', 'type message')
@@ -34,6 +34,24 @@ _HEADER_FMT_SIZE = struct.calcsize(_HEADER_FMT)
 _KILL_SERVER_HEADER = ('kill', 0)
 
 _CmdError = _namedtuple('_CmdError', 'exception text')
+
+
+def _strs_to_uuid(*strs):
+    "Return a UUID from any number of strings"
+    from uuid import UUID
+    from hashlib import md5
+    md5sum = md5()
+    total = '.'.join(strs).encode()
+    md5sum.update(total)
+    return UUID(bytes=md5sum.digest())
+
+
+def _obj_to_uuid(obj):
+    """Create a UUID given an object.
+
+    The UUID is made from the object's __module__ and __name__ properties
+    """
+    return _strs_to_uuid(obj.__module__, obj.__name__)
 
 
 def _pack_header(msg_type='', length=0):
@@ -157,7 +175,7 @@ class SocketInfo:
                 break
         if not base_dir:
             base_dir = os.path.expanduser('~/.cache/')
-        return os.path.join(base_dir, self.sock_name)
+        return os.path.join(base_dir, 'gpopup_ipc', self.sock_name)
 
     @staticmethod
     def _sock_bind(file_path):
@@ -221,7 +239,6 @@ class Server(Marshall):
     # out == ((1, 2, 3), {'x': 'x string', 'y': {'a': True}})
     """
     _conn_timeout = _DEFAULT_CONN_TIMEOUT
-    sock_name = _DEFAULT_SOCK_NAME
 
     def __init__(self, sock_name='', force_bind=False):
         if sock_name:
@@ -236,13 +253,37 @@ class Server(Marshall):
         )
 
     @classmethod
+    def _default_sock_name(cls):
+        try:
+            return cls.__sock_uuid
+        except AttributeError:
+            uuid = str(_obj_to_uuid(cls))
+            cls.__sock_uuid = uuid
+            return uuid
+
+    @property
+    def sock_name(self):
+        try:
+            return self._sock_name
+        except AttributeError:
+            return self._default_sock_name()
+
+    @sock_name.setter
+    def sock_name(self, value):
+        self._sock_name = value
+
+    @sock_name.deleter
+    def sock_name(self):
+        del self._sock_name
+
+    @classmethod
     def get_client(cls):
         docstr = """\
         Associated client for the server {}
         """.format(cls.__name__)
+
         class Client(BaseClient):
             command_server = cls
-            sock_name = cls.sock_name
         Client.__doc__ = docstr
         return Client
 
@@ -301,9 +342,11 @@ class Server(Marshall):
                     if self._watch_sock():
                         self._loop_run()
                 finally:
-                    sys.exit(0)
+                    os._exit(0)
+                    # sys.exit(0)
             elif fpid == -1:    # elif fork failed
-                sys.exit(1)
+                os._exit(1)
+                # sys.exit(1)
             else:
                 return None
         else:
@@ -397,6 +440,13 @@ class MetaClient(type):
         server = clsdict.get('command_server', None)
         if server is not None:
             cls = AddCommands(server)(cls)
+        # maybe fold this next bit into the previous
+        # if block, but note that clsdict['attr'] and cls.attr
+        # are not equivalent
+        server = cls.command_server
+        if server is not None:
+            cls.sock_name = server._default_sock_name()
+            cls.serial_method = server.serial_method
         return cls
 
 
@@ -411,12 +461,15 @@ class BaseClient(Marshall, metaclass=MetaClient):
     command_server = None
     _conn_timeout_long = _DEFAULT_CONN_TIMEOUT * 2.0
     _conn_timeout = _DEFAULT_CONN_TIMEOUT
-    sock_name = _DEFAULT_SOCK_NAME
 
     def __init__(self, sock_name=''):
         if sock_name:
             self.sock_name = sock_name
-        self._sock_info = SocketInfo(self.sock_name, server=False, timeout=self._conn_timeout)
+        self._sock_info = SocketInfo(
+            self.sock_name,
+            server=False,
+            timeout=self._conn_timeout,
+        )
 
     def run_cmd(self, cmd_name, *pargs, **kwargs):
         d_message = {

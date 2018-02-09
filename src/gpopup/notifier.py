@@ -1,15 +1,13 @@
-import gpopup.ipc as ipc
-from gpopup.message_widgets import MainWindow
 from collections import OrderedDict as _OrderedDict
 
-
-_SOCKET_NAME = 'gpopup/socket'
+import gpopup.ipc as ipc
+from gpopup.message_widgets import MainWindow
 
 
 class NotifierServer(ipc.Server):
     position = 'center'
-    sock_name = _SOCKET_NAME
-    def __init__(self, sock_name=_SOCKET_NAME, force_bind=False):
+
+    def __init__(self, sock_name='', force_bind=False):
         super().__init__(sock_name=sock_name, force_bind=force_bind)
         MainWindow.nwins += 1   # This is so that MainWindow doesn't kill the gtk.main loop
         self.notifications = _OrderedDict()
@@ -41,7 +39,6 @@ class NotifierServer(ipc.Server):
         win.movewin()           # Move to old position after showing
         # This call to movewin appears necessary in QTile
 
-
     def _remove_notif_id(self, gtk_mainwindow=None, n_id=None):
         del self.notifications[n_id]
         try:
@@ -63,7 +60,7 @@ class NotifierServer(ipc.Server):
         if notification_id is None:
             notification_id = self.notification_id
         win = self.notifications[notification_id]
-        win.timeout_destroy(timeout)
+        return win.timeout_destroy(timeout)
 
     def cmd_movewin(self, position=None, notification_id=None):
         if notification_id is None:
@@ -78,5 +75,3 @@ class NotifierServer(ipc.Server):
 class NotifierClient(ipc.BaseClient):
     "Client associated with NotifierServer"
     command_server = NotifierServer
-    sock_name = NotifierServer.sock_name
-

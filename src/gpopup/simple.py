@@ -1,6 +1,8 @@
 import gpopup.message_types as _mtypes
 
 new_messages = _mtypes.new_messages
+
+
 def show(summary='', body='', table='', table_cols=(),
          post_summary='', post_body='', display_time=5.0,
          position='northeast'):
@@ -27,4 +29,3 @@ def show_blocking(summary='', body='', table='', table_cols=(),
     win.timeout_destroy(display_time)
     _mwidgets.Gtk.main()
     return True
-

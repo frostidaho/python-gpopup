@@ -1,10 +1,11 @@
 import argparse
-from gpopup.notifier import NotifierClient
-from gpopup.message_types import make_msg
-from gpopup.window_utils import Position
-from gpopup.utils import get_app_logger
-import sys
 import json
+import sys
+
+from gpopup.message_types import make_msg
+from gpopup.notifier import NotifierClient
+from gpopup.utils import get_app_logger
+from gpopup.window_utils import Position
 
 # SOCKET_NAME = 'gpopup/socket'
 DEBUG = True
@@ -84,6 +85,7 @@ def client_parser():
         help="Make notification ID timeout after TIMEOUT",
     )
     return parser
+
 
 def main(args=None):
     parser = client_parser()

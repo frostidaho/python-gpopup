@@ -29,6 +29,7 @@ help:
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
 clean: clean-build clean-pyc clean-test ## remove all build, test, coverage and Python artifacts
+	git clean -dxf
 
 clean-build: ## remove build artifacts
 	rm -fr build/
@@ -45,6 +46,7 @@ clean-pyc: ## remove Python file artifacts
 
 clean-test: ## remove test and coverage artifacts
 	rm -fr .tox/
+	rm -rf .pytest_cache
 	rm -f .coverage
 	rm -fr htmlcov/
 
@@ -52,10 +54,10 @@ lint: ## check style with flake8
 	flake8 src/gpopup tests
 
 test: ## run tests quickly with the default Python
-	py.test $(project_dir)/tests
+	python -m pytest -v --cov=gpopup $(project_dir)/tests
 
-test-all: ## run normal tests and example scripts
-	py.test $(project_dir)/tests $(project_dir)/examples/tests
+test-tox:
+	tox
 
 docs: ## generate Sphinx HTML documentation, including API docs
 	rm -f docs/gpopup.rst

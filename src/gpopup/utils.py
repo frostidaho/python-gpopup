@@ -1,11 +1,8 @@
-from itertools import (
-    islice as _islice,
-    chain as _chain,
-)
-from collections import (
-    namedtuple as _namedtuple,
-    OrderedDict as _OrderedDict,
-)
+from collections import OrderedDict as _OrderedDict
+from collections import namedtuple as _namedtuple
+from itertools import chain as _chain
+from itertools import islice as _islice
+
 
 class OrderedChoices(type):
     @classmethod
@@ -14,7 +11,7 @@ class OrderedChoices(type):
 
     def __new__(self, name, bases, classdict):
         classdict['choices'] = tuple(key for key in classdict.keys()
-                                if not key.startswith('_'))
+                                     if not key.startswith('_'))
         return type.__new__(self, name, bases, classdict)
 
 
@@ -33,6 +30,7 @@ def message_depth(msg, maxdepth=2, n=0):
 
 def takeall(n, iterable):
     iterable = iter(iterable)
+
     def take(n, iterable):
         "Return first n items of the iterable as a tuple"
         return tuple(_islice(iterable, n))
@@ -44,6 +42,7 @@ def takeall(n, iterable):
         else:
             return
 
+
 def ensure_row_length(matrix, ncols, fill=''):
     """Make sure each row in matrix has length ncols.
 
@@ -52,6 +51,7 @@ def ensure_row_length(matrix, ncols, fill=''):
     """
     tcols = (fill,) * ncols
     return tuple(tuple(_islice(_chain(x, tcols), ncols)) for x in matrix)
+
 
 def vector_to_matrix(vector, ncols=1, fill=''):
     """Reshape the 1d vector into a 2d matrix
@@ -66,12 +66,14 @@ def vector_to_matrix(vector, ncols=1, fill=''):
 
 
 FormattedTblMsg = _namedtuple('FormattedTblMsg', 'entries columns')
+
+
 def format_tbl_msg(message='', columns=()):
     mdepth = message_depth(message)
     if isinstance(columns, int):
         columns = columns * ('',)
     elif not columns:
-        if mdepth < 2: # i.e., msg is a string or a vector
+        if mdepth < 2:  # i.e., msg is a string or a vector
             columns = ('',)
         else:
             columns = len(max(message, key=lambda x: len(x))) * ('',)
@@ -116,10 +118,10 @@ def get_app_logger(debug=True):
                 datefmt="%H:%M:%S",
                 reset=True,
                 log_colors={
-                    'DEBUG':    'cyan',
-                    'INFO':     'green',
-                    'WARNING':  'yellow',
-                    'ERROR':    'red',
+                    'DEBUG': 'cyan',
+                    'INFO': 'green',
+                    'WARNING': 'yellow',
+                    'ERROR': 'red',
                     'CRITICAL': 'red,bg_white',
                 },
             )

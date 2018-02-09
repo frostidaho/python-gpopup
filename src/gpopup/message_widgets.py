@@ -1,21 +1,19 @@
 import logging as _logging
-_log = _logging.getLogger(__name__)
-_log.addHandler(_logging.NullHandler())
-
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
-from gi.repository import Gdk
-from gi.repository import GLib
-# Set font of a CellRendererText using Pango
-# http://faq.pygtk.org/index.py?req=show&file=faq13.040.htp
-gi.require_version('Pango', '1.0')
-from gi.repository import Pango
-
-from gpopup.window_utils import Position, monitor_geometry
 from collections import namedtuple as _namedtuple
 from itertools import repeat as _repeat
 from itertools import zip_longest as _zip_longest
+
+import gi
+gi.require_version('Gdk', '3.0')
+gi.require_version('Gtk', '3.0')
+gi.require_version('Pango', '1.0')
+from gi.repository import Gdk, GLib, Gtk, Pango
+
+from gpopup.window_utils import Position, monitor_geometry
+
+_log = _logging.getLogger(__name__)
+_log.addHandler(_logging.NullHandler())
+
 
 class PyListStore(Gtk.ListStore):
     def extend(self, rows):
@@ -45,7 +43,7 @@ class BaseWidget:
         _log.debug('Widget options are: {}'.format(self.message.widget_opts))
 
     def _option_setter(self, opts):
-        for k,v in opts.items():
+        for k, v in opts.items():
             try:
                 setattr(self, k, v)
             except AttributeError:
@@ -87,7 +85,13 @@ class TableWidget(BaseWidget):
         col_n_font = zip(self.message.columns, self.columns_font, self.columns_alignment)
         for i, cnf in enumerate(col_n_font):
             col, font, align = cnf
-            tv_col = self._make_treeview_col(idx=i, colname=col, max_col_width=max_col_width, font=font, alignment=align)
+            tv_col = self._make_treeview_col(
+                idx=i,
+                colname=col,
+                max_col_width=max_col_width,
+                font=font,
+                alignment=align,
+            )
             self.tree.append_column(tv_col)
         self.show_headers = any(self.message.columns)
 
@@ -145,6 +149,7 @@ class TableWidget(BaseWidget):
     @columns_alignment.setter
     def columns_alignment(self, val):
         aligns = set(('LEFT', 'RIGHT', 'CENTER'))
+
         def test_str(val_str):
             if val_str not in aligns:
                 raise ValueError('Alignment {!r} is not one of {!r}'.format(val, aligns))
@@ -182,15 +187,15 @@ class TableWidget(BaseWidget):
             sw.set_policy(
                 # Relating to how to get a scrolledwindow to have the size of its contents
                 # http://faq.pyGtk.org/index.py?req=edit&file=faq10.028.htp
-                hscrollbar_policy = Gtk.PolicyType.NEVER,
+                hscrollbar_policy=Gtk.PolicyType.NEVER,
                 # vscrollbar_policy = Gtk.PolicyType.EXTERNAL,
-                vscrollbar_policy = Gtk.PolicyType.AUTOMATIC,
+                vscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
             )
             sw.add(self.tree)
             self._scrolledwindow = sw
-            nrows = len(self.liststore) +2 # +2 due to headers
-            min_rows = self.min_rows # +2 due to headers
-            max_rows = self.max_rows + 2 # +2 due to headers
+            nrows = len(self.liststore) + 2  # +2 due to headers
+            min_rows = self.min_rows  # +2 due to headers
+            max_rows = self.max_rows + 2  # +2 due to headers
 
             nrows = min([max_rows, nrows])
             nrows = max([min_rows, nrows])
@@ -206,9 +211,10 @@ class TableWidget(BaseWidget):
         _log.debug('Max row height = {}, Row spacing = {}'.format(height, spacing))
         return height + spacing
 
+
 class SimpleWidget(BaseWidget):
     def _init_widget(self):
-        box =  Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+        box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         # https://developer.gnome.org/gtk3/stable/GtkBox.html#gtk-box-pack-start
         if self.message.summary:
             summary = '<b>{}</b>'.format(self.message.summary)
@@ -226,7 +232,10 @@ class SimpleWidget(BaseWidget):
         label.set_use_markup(use_markup)
         return label
 
+
 _DestroyInfo = _namedtuple('_DestroyInfo', 'id timeout')
+
+
 class MainWindow(Gtk.Window):
     nwins = 0
     win_id = 0
@@ -247,14 +256,15 @@ class MainWindow(Gtk.Window):
             row.add(msg.get_widget().primary)
             lb.add(row)
         self.add(box)
-        
+
         self.set_name('gpopup')
-        self.window_type = Gtk.WindowType.TOPLEVEL # Maybe try WindowType.POPUP
-        self.set_type_hint(Gdk.WindowTypeHint.NOTIFICATION) # Maybe try WindowTypeHint.DIALOG
+        self.window_type = Gtk.WindowType.TOPLEVEL  # Maybe try WindowType.POPUP
+        # Maybe try WindowTypeHint.DIALOG
+        self.set_type_hint(Gdk.WindowTypeHint.NOTIFICATION)
 
         # https://developer.gnome.org/icon-naming-spec/
         self.set_icon_name("dialog-information")
-        
+
         self.__class__.nwins += 1
         self.win_id = self.next_win_id()
         self.connect("destroy", self.remove_window, None)
@@ -262,7 +272,6 @@ class MainWindow(Gtk.Window):
         self.connect("button-release-event", self.on_button_release)
         self.connect("focus-in-event", self.rm_timeout_destroy)
         self.connect("focus-out-event", self.add_timeout_destroy)
-        
 
         keynames = ['Escape']
         gdk_keys = {}
@@ -274,7 +283,7 @@ class MainWindow(Gtk.Window):
         self.resize(mgeom.width // 8, mgeom.height // 8)
         self.show_all()
         self.size_allocate_handler = self.connect('size-allocate', self.movewin)
-        
+
     @property
     def position(self):
         return self._position
@@ -284,7 +293,8 @@ class MainWindow(Gtk.Window):
         if value in Position.__dict__:
             self._position = value
         else:
-            raise ValueError('{} is not the name of a method in {}'.format(value, Position))
+            msg = '{} is not the name of a method in {}'
+            raise ValueError(msg.format(value, Position))
 
     def remove_window(self, widget, callback_data):
         """This is decrements a counter for how many windows are currently present
@@ -293,7 +303,7 @@ class MainWindow(Gtk.Window):
         self.__class__.nwins -= 1
         if self.__class__.nwins <= 0:
             Gtk.main_quit()
-        
+
     def on_key_press(self, widget, event):
         key = event.keyval
         modifier = event.state
@@ -304,6 +314,7 @@ class MainWindow(Gtk.Window):
             self.destroy()
 
     def movewin(self, *pargs):
+        _log.debug('Moving window to position {!r}'.format(self.position))
         gdkwin = self.get_window()
         try:
             geom = gdkwin.get_geometry()
@@ -312,7 +323,7 @@ class MainWindow(Gtk.Window):
             if wsize == gdkwin.get_geometry():
                 self.disconnect(self.size_allocate_handler)
         except AttributeError:
-            pass
+            _log.debug("Couldn't move window to {!r}".format(self.position))
 
     def on_button_release(self, widget, event):
         self.destroy()

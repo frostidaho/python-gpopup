@@ -2,11 +2,12 @@ import argparse
 
 import gpopup.message_types as mtypes
 import gpopup.message_widgets as mwidgets
-from gpopup.utils import read_files, get_app_logger
+from gpopup.utils import get_app_logger, read_files
 from gpopup.window_utils import Position
 
 DEBUG = True
 logger = get_app_logger(debug=DEBUG)
+
 
 def main_parser():
     parser = argparse.ArgumentParser(description='Command description.')
@@ -22,6 +23,7 @@ def main_parser():
         help="the position",
     )
     return parser
+
 
 def main(args=None):
     parser = main_parser()

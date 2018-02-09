@@ -1,9 +1,10 @@
-import gi
-gi.require_version('Gdk', '3.0')
-from gi.repository import Gdk
-from collections import namedtuple, OrderedDict
+import logging as _logging
+from collections import OrderedDict, namedtuple
+
 from gpopup.utils import OrderedChoices
 
+_log = _logging.getLogger(__name__)
+_log.addHandler(_logging.NullHandler())
 
 BORDER_THICKNESS = 4            # pixels
 
@@ -26,16 +27,33 @@ def monitor_geometry():
 
        MonitorGeometry(left, right, top, bottom, width, height)
     """
-
+    # It's important to import Gdk inside this code for testing purposes
+    import gi
+    gi.require_version('Gdk', '3.0')
+    from gi.repository import Gdk
     display = Gdk.Display.get_default()
     screen = display.get_default_screen()
-    window = screen.get_active_window()
-    monitor = screen.get_monitor_at_window(window)
+    debug = _log.debug
 
-    g = screen.get_monitor_geometry(monitor)
+    def _get_geom():
+        window = screen.get_active_window()  # returns None if no active window
+        if window is not None:
+            debug('Screen has no active window')
+            monitor = screen.get_monitor_at_window(window)
+            return screen.get_monitor_geometry(monitor)
+        try:
+            return display.get_primary_monitor().get_geometry()
+        except AttributeError:
+            debug('Display has no primary monitor')
+            return display.get_monitor(0).get_geometry()
+    g = _get_geom()
+
     right = g.x + g.width
     bottom = g.y + g.height
-    return MonitorGeometry(g.x, right, g.y, bottom, g.width, g.height)
+    geom = MonitorGeometry(g.x, right, g.y, bottom, g.width, g.height)
+    debug('Monitor geometry is {!r}'.format(geom))
+    return geom
+
 
 class Position(metaclass=OrderedChoices):
     def __init__(self, x, y, width, height):

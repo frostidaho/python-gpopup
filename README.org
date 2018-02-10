@@ -1,3 +1,4 @@
+#+TITLE: python-gpopup [[https://travis-ci.org/frostidaho/python-gpopup][https://travis-ci.org/frostidaho/python-gpopup.svg?branch=master]]
 * Overview
 /python-gpopup/ is a notification system using Gtk3.
 
@@ -46,14 +47,9 @@ The executable notification tools included are
 git clone https://github.com/frostidaho/python-gpopup.git
 pip install --user ./python-gpopup
 #+END_SRC
+Note that gpopup depends on [[https://pygobject.readthedocs.io/en/latest/][PyGObject]].
 
 * Testing
-** Running just unit tests
 #+BEGIN_SRC sh
-make test
-#+END_SRC
-
-** Running unit tests and example scripts
-#+BEGIN_SRC sh
-make test-all
+tox
 #+END_SRC

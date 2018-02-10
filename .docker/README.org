@@ -1,0 +1,18 @@
+#+TITLE: Docker containers in gpopup
+
+Docker containers are used on travis-ci to run tests. If you want to run tests on your machine use ~tox~ instead. Read [[file:../.travis.yml][.travis.yml]] to see how they're built and run
+on travis-ci.
+
+* Example docker usage
+** Building docker images and running tests
+#+BEGIN_SRC sh
+docker build -t frostidaho/gpopup:debian_stretch -f .docker/debian_stretch/Dockerfile .
+docker build -t gpopup:debian_stretch_py3 -f .docker/debian_stretch_py3/Dockerfile .
+docker run --tty gpopup:debian_stretch_py3 /app/.docker/run_unit_tests.sh
+#+END_SRC
+
+** Interactively running docker container
+#+BEGIN_SRC sh
+docker run -it --entrypoint /bin/bash --tty gpopup:debian_stretch_py3
+#+END_SRC
+

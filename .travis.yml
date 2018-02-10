@@ -1,0 +1,33 @@
+sudo: required
+services:
+  - docker
+language: minimal
+jobs:
+  allow_failures:
+    - stage: debian stretch py2 unit tests
+    - stage: debian stretch py3 examples test
+  include:
+    - stage: build base debian stretch
+      script:
+        - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+        - docker build -t $DOCKER_USERNAME/gpopup:debian_stretch -f .docker/debian_stretch/Dockerfile .
+        - docker images
+        - docker push $DOCKER_USERNAME/gpopup:debian_stretch
+    - stage: debian stretch py3 unit tests
+      env: DNAME=debian_stretch_py3
+      script:
+        - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME -t gpopup:$DNAME -f .docker/$DNAME/Dockerfile .
+        - docker run --tty gpopup:$DNAME /app/.docker/run_unit_tests.sh
+    - stage: debian stretch py3 examples test
+      env: DNAME=debian_stretch_py3
+      script:
+        - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME -t gpopup:$DNAME -f .docker/$DNAME/Dockerfile .
+        - docker run --tty gpopup:$DNAME /app/.docker/run_examples_test.sh
+    - stage: debian stretch py2 unit tests
+      env: DNAME=debian_stretch_py2
+      script:
+        - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME -t gpopup:$DNAME -f .docker/$DNAME/Dockerfile .
+        - docker run --tty gpopup:$DNAME /app/.docker/run_unit_tests.sh
+
+notifications:
+  email: false

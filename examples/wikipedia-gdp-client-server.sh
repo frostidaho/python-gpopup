@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e -E # -e --> exit on err; -E --> print error trace
 exdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"

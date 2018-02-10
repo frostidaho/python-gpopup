@@ -1,7 +1,7 @@
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 project_dir := $(dir $(mkfile_path))
 
-.PHONY: clean clean-test clean-pyc clean-build docs help
+.PHONY: clean clean-test clean-pyc clean-build docs help wheel
 .DEFAULT_GOAL := help
 define BROWSER_PYSCRIPT
 import os, webbrowser, sys
@@ -58,6 +58,7 @@ test: ## run tests quickly with the default Python
 
 test-tox:
 	tox
+	tox -e examples
 
 docs: ## generate Sphinx HTML documentation, including API docs
 	rm -f docs/gpopup.rst
@@ -88,4 +89,6 @@ install_develop: ## install the package to the user's home directory as symlinks
 uninstall: ## install the package
 	-pip uninstall gpopup
 
+wheel:
+	@python setup.py bdist_wheel
 

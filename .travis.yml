@@ -5,34 +5,67 @@ language: minimal
 
 env:
   global:
-    - unit_test=/app/.docker/run_unit_tests.sh
-    - examples_test=/app/.docker/run_examples_test.sh
+    - dockerfile=.docker/small/Dockerfile
+    - PYTHON=python3
 
 jobs:
   allow_failures:
-    - stage: debian stretch py2 unit tests
+    - stage: debian stretch py2
   include:
-    - stage: build base debian stretch
+    ##################################################
+    - stage: build base docker images
+      env: BASE=debian_stretch
       script:
         - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-        - docker build -t $DOCKER_USERNAME/gpopup:debian_stretch -f .docker/debian_stretch/Dockerfile .
+        - docker build -t $DOCKER_USERNAME/gpopup:$BASE -f .docker/$BASE/Dockerfile .
         - docker images
-        - docker push $DOCKER_USERNAME/gpopup:debian_stretch
+        - docker push $DOCKER_USERNAME/gpopup:$BASE
+    - # stage: build base docker images
+      env: BASE=debian_buster
+      script:
+        - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+        - docker build -t $DOCKER_USERNAME/gpopup:$BASE -f .docker/$BASE/Dockerfile .
+        - docker images
+        - docker push $DOCKER_USERNAME/gpopup:$BASE
+    ##################################################
     - stage: debian stretch py3
-      env: DNAME=debian_stretch_py3
+      env:
+        - BASE=debian_stretch
+        - TEST=/app/.docker/run_unit_tests.sh
       script:
-        - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME -t gpopup:$DNAME -f .docker/$DNAME/Dockerfile .
-        - docker run --tty gpopup:$DNAME $unit_test
+        - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME --build-arg BASE="$BASE" --build-arg PYTHON=$PYTHON -t "gpopup:$BASE$PYTHON" -f "$dockerfile" .
+        - docker run --tty "gpopup:$BASE$PYTHON" $TEST
     - # stage: debian stretch py3
-      env: DNAME=debian_stretch_py3
+      env:
+        - BASE=debian_stretch
+        - TEST=/app/.docker/run_examples_test.sh
       script:
-        - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME -t gpopup:$DNAME -f .docker/$DNAME/Dockerfile .
-        - docker run --tty gpopup:$DNAME $examples_test
-    - stage: debian stretch py2 unit tests
-      env: DNAME=debian_stretch_py2
+        - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME --build-arg BASE="$BASE" --build-arg PYTHON=$PYTHON -t "gpopup:$BASE$PYTHON" -f "$dockerfile" .
+        - docker run --tty "gpopup:$BASE$PYTHON" $TEST
+    ##################################################
+    - stage: debian buster py3
+      env:
+        - BASE=debian_buster
+        - TEST=/app/.docker/run_unit_tests.sh
       script:
-        - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME -t gpopup:$DNAME -f .docker/$DNAME/Dockerfile .
-        - docker run --tty gpopup:$DNAME $unit_test
+        - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME --build-arg BASE="$BASE" --build-arg PYTHON=$PYTHON -t "gpopup:$BASE$PYTHON" -f "$dockerfile" .
+        - docker run --tty "gpopup:$BASE$PYTHON" $TEST
+    - # stage: debian buster py3
+      env:
+        - BASE=debian_buster
+        - TEST=/app/.docker/run_examples_test.sh
+      script:
+        - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME --build-arg BASE="$BASE" --build-arg PYTHON=$PYTHON -t "gpopup:$BASE$PYTHON" -f "$dockerfile" .
+        - docker run --tty "gpopup:$BASE$PYTHON" $TEST
+    ##################################################
+    - stage: debian stretch py2
+      env:
+        - BASE=debian_stretch
+        - PYTHON=python2
+        - TEST=/app/.docker/run_unit_tests.sh
+      script:
+        - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME --build-arg BASE="$BASE" --build-arg PYTHON=$PYTHON -t "gpopup:$BASE$PYTHON" -f "$dockerfile" .
+        - docker run --tty "gpopup:$BASE$PYTHON" $TEST
 
 notifications:
   email: false
